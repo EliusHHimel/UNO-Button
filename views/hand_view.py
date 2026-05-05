@@ -33,14 +33,14 @@ def build_hand_embed(player: "Player", game: "UNOGame") -> discord.Embed:
 
     description_lines = [
         f"**Top card:** {top_emoji} {top.full_name}",
-        f"**Active colour:** {active_emoji} {game.active_color.value.capitalize() if game.active_color else 'TBD'}",
+        f"**Active color:** {active_emoji} {game.active_color.value.capitalize() if game.active_color else 'TBD'}",
         "",
     ]
 
     if game.state != GameState.PLAYING:
         description_lines.append("The game is not running.")
     elif game.awaiting_color:
-        description_lines.append("Waiting for the Wild-card player to choose a colour…")
+        description_lines.append("Waiting for the Wild-card player to choose a color…")
     elif is_my_turn:
         playable = game.playable_indices(player)
         if playable:
@@ -278,8 +278,8 @@ class _CardButton(discord.ui.Button):
             from views.color_view import ColorPickerView
 
             embed = discord.Embed(
-                title="🎨 Choose a Colour",
-                description="Pick the active colour for your Wild card:",
+                title="🎨 Choose a Color",
+                description="Pick the active color for your Wild card:",
                 color=discord.Color.dark_grey(),
             )
             await interaction.response.edit_message(

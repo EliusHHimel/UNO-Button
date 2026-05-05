@@ -93,7 +93,7 @@ class Card:
         # Wild cards are always playable
         if self.is_wild:
             return True
-        # Same active colour
+        # Same active color
         if self.color == active_color:
             return True
         # Same card type (and same number for NUMBER cards)

@@ -21,7 +21,7 @@ _COLOR_BUTTONS = [
 
 
 class ColorPickerView(discord.ui.View):
-    """Four colour buttons; ephemeral follow-up after a Wild play."""
+    """Four color buttons; ephemeral follow-up after a Wild play."""
 
     def __init__(self, game: "UNOGame") -> None:
         super().__init__(timeout=120)
@@ -51,7 +51,7 @@ class _ColorButton(discord.ui.Button):
 
         if interaction.user.id != acting_player.user_id:
             await interaction.response.send_message(
-                "Only the player who played the Wild card picks the colour!",
+                "Only the player who played the Wild card picks the color!",
                 ephemeral=True,
             )
             return
@@ -70,7 +70,7 @@ class _ColorButton(discord.ui.Button):
 
         emoji = COLOR_EMOJI[self.chosen_color]
         await interaction.response.edit_message(
-            content=f"{emoji} Colour set to **{self.chosen_color.value.capitalize()}**! Your turn is over.",
+            content=f"{emoji} Color set to **{self.chosen_color.value.capitalize()}**! Your turn is over.",
             embed=None,
             view=None,
         )

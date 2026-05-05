@@ -21,7 +21,7 @@ class GameView(discord.ui.View):
     def __init__(self, game: "UNOGame") -> None:
         super().__init__(timeout=None)
         self.game = game
-        # Dynamically disable Draw / Play when awaiting wild colour
+        # Dynamically disable Draw / Play when awaiting wild color
         waiting = game.awaiting_color
         self.add_item(_ViewHandButton(game, disabled=waiting))
         self.add_item(_DrawCardButton(game, disabled=waiting))
@@ -98,7 +98,7 @@ class _DrawCardButton(discord.ui.Button):
             return
         if self.game.awaiting_color:
             await interaction.response.send_message(
-                "A colour must be chosen for the Wild card first.", ephemeral=True
+                "A color must be chosen for the Wild card first.", ephemeral=True
             )
             return
 

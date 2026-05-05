@@ -54,7 +54,7 @@ def build_game_embed(game: "UNOGame") -> discord.Embed:
 
     # PLAYING
     top = game.deck.top_card
-    colour = EMBED_COLOR.get(game.active_color, discord.Color.blurple())
+    color = EMBED_COLOR.get(game.active_color, discord.Color.blurple())
     top_emoji = COLOR_EMOJI[top.color]
     direction_icon = "↻ Clockwise" if game.direction == 1 else "↺ Counter-clockwise"
     active_emoji = COLOR_EMOJI.get(game.active_color, "❓")
@@ -70,11 +70,11 @@ def build_game_embed(game: "UNOGame") -> discord.Embed:
 
     embed = discord.Embed(
         title="🃏 UNO",
-        color=colour,
+        color=color,
     )
     embed.add_field(
         name=f"Top Card  {top_emoji} {top.full_name}",
-        value=f"Active colour: {active_emoji} **{game.active_color.value.capitalize() if game.active_color else 'TBD'}**",
+        value=f"Active color: {active_emoji} **{game.active_color.value.capitalize() if game.active_color else 'TBD'}**",
         inline=True,
     )
     embed.add_field(name="Direction", value=direction_icon, inline=True)
@@ -86,7 +86,7 @@ def build_game_embed(game: "UNOGame") -> discord.Embed:
     embed.add_field(name="Last Action", value=game.last_action, inline=False)
 
     if game.awaiting_color:
-        embed.set_footer(text=f"⏳ {game.players[(game.current_index - game.direction) % len(game.players)].display_name} must choose a colour!")
+        embed.set_footer(text=f"⏳ {game.players[(game.current_index - game.direction) % len(game.players)].display_name} must choose a color!")
     else:
         embed.set_footer(text=f"⏳ It's {game.current_player.display_name}'s turn!")
 
