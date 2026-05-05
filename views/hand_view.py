@@ -17,9 +17,17 @@ if TYPE_CHECKING:
 CARDS_PER_PAGE = 20
 
 
-def build_hand_embed(player: "Player", game: "UNOGame") -> discord.Embed:
-    """Embed shown above the hand-view buttons."""
-    from game.card import COLOR_EMOJI
+def build_hand_embed(
+    player: "Player",
+    game: "UNOGame",
+    last_played: "Card | None" = None,
+) -> discord.Embed:
+    """Embed shown above the hand-view buttons.
+
+    If *last_played* is provided, a "You played X" notice is shown at the top
+    and the status line reflects that the turn has passed.
+    """
+    from game.card import Card, COLOR_EMOJI
 
     is_my_turn = (
         game.state == GameState.PLAYING
@@ -36,6 +44,10 @@ def build_hand_embed(player: "Player", game: "UNOGame") -> discord.Embed:
         f"**Active color:** {active_emoji} {game.active_color.value.capitalize() if game.active_color else 'TBD'}",
         "",
     ]
+
+    if last_played is not None:
+        played_emoji = COLOR_EMOJI[last_played.color]
+        description_lines.insert(0, f"✅ You played **{played_emoji} {last_played.full_name}**\n")
 
     if game.state != GameState.PLAYING:
         description_lines.append("The game is not running.")
@@ -297,13 +309,16 @@ class _CardButton(discord.ui.Button):
                 embed=None,
                 view=None,
             )
+            self.view.stop()
         else:
-            await interaction.response.edit_message(
-                content=f"✅ You played **{self.card.full_name}**. Turn complete!",
-                embed=None,
-                view=None,
+            # Refresh the ephemeral panel in-place: show the updated hand with
+            # a "You played X" notice so the panel stays open.
+            new_hand_view = HandView(self.player, self.game)
+            new_embed = build_hand_embed(
+                self.player, self.game, last_played=self.card
             )
-        self.view.stop()
+            await interaction.response.edit_message(embed=new_embed, view=new_hand_view)
+            self.view.stop()
 
 
 # ------------------------------------------------------------------
