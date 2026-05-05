@@ -58,8 +58,9 @@ class _ColorButton(discord.ui.Button):
 
         self.game.set_wild_color(self.chosen_color)
 
-        # Refresh the main game message
+        # Refresh the main game message and all open hand panels
         from views.game_view import GameView
+        from views.hand_view import _refresh_hand_panels
 
         new_embed = build_game_embed(self.game)
         new_view = GameView(self.game)
@@ -67,6 +68,7 @@ class _ColorButton(discord.ui.Button):
             self.game.current_view.stop()
         self.game.current_view = new_view
         await self.game.game_message.edit(embed=new_embed, view=new_view)
+        await _refresh_hand_panels(self.game)
 
         emoji = COLOR_EMOJI[self.chosen_color]
         await interaction.response.edit_message(

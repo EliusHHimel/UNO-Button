@@ -211,8 +211,11 @@ class HandView(discord.ui.View):
             )
             return
 
-        # Refresh main game message
-        await _refresh_game_message(self.game)
+        # Remove this panel before refreshing (callback handles its own response)
+        self.game.hand_panels.pop(self.player.user_id, None)
+
+        # Refresh main game message and all other open panels
+        await _refresh_game_message(self.game, skip_user_id=self.player.user_id)
 
         await interaction.response.edit_message(
             content=(
@@ -225,6 +228,7 @@ class HandView(discord.ui.View):
         self.stop()
 
     async def _close(self, interaction: discord.Interaction) -> None:
+        self.game.hand_panels.pop(self.player.user_id, None)
         await interaction.response.edit_message(
             content="Hand closed.", embed=None, view=None
         )
@@ -289,6 +293,11 @@ class _CardButton(discord.ui.Button):
         if result == "color_choice":
             from views.color_view import ColorPickerView
 
+            # Remove this player's panel ref (they'll see the color picker instead)
+            self.game.hand_panels.pop(self.player.user_id, None)
+            # Update main game message and all other players' panels
+            await _refresh_game_message(self.game, skip_user_id=self.player.user_id)
+
             embed = discord.Embed(
                 title="🎨 Choose a Color",
                 description="Pick the active color for your Wild card:",
@@ -300,10 +309,11 @@ class _CardButton(discord.ui.Button):
             self.view.stop()
             return
 
-        # "ok" or "win"
-        await _refresh_game_message(self.game)
+        # "ok" or "win" — refresh main game message and all other panels
+        await _refresh_game_message(self.game, skip_user_id=self.player.user_id)
 
         if result == "win":
+            self.game.hand_panels.pop(self.player.user_id, None)
             await interaction.response.edit_message(
                 content="🎉 **You played your last card and WON!** Congratulations!",
                 embed=None,
@@ -322,11 +332,44 @@ class _CardButton(discord.ui.Button):
 
 
 # ------------------------------------------------------------------
-# Shared helper
+# Shared helpers
 # ------------------------------------------------------------------
 
-async def _refresh_game_message(game: "UNOGame") -> None:
-    """Edit the main game message with the latest embed + view."""
+async def _refresh_hand_panels(
+    game: "UNOGame", skip_user_id: int = 0
+) -> None:
+    """Push an updated hand embed + view to every open ephemeral hand panel.
+
+    *skip_user_id* identifies the player whose own callback is already handling
+    their panel update (avoids a redundant second edit on the same message).
+    """
+    dead: list = []
+    for user_id, stored_interaction in list(game.hand_panels.items()):
+        if user_id == skip_user_id:
+            continue
+        player = game.get_player(user_id)
+        if player is None:
+            dead.append(user_id)
+            continue
+        try:
+            new_view = HandView(player, game)
+            new_embed = build_hand_embed(player, game)
+            await stored_interaction.edit_original_response(
+                embed=new_embed, view=new_view
+            )
+        except Exception:
+            dead.append(user_id)
+    for uid in dead:
+        game.hand_panels.pop(uid, None)
+
+
+async def _refresh_game_message(
+    game: "UNOGame", skip_user_id: int = 0
+) -> None:
+    """Edit the main game message with the latest embed + view, then refresh
+    all open ephemeral hand panels (skipping *skip_user_id* whose callback
+    handles its own panel).
+    """
     if game.game_message is None:
         return
 
@@ -344,3 +387,5 @@ async def _refresh_game_message(game: "UNOGame") -> None:
             game.current_view.stop()
         game.current_view = new_view
         await game.game_message.edit(embed=build_game_embed(game), view=new_view)
+
+    await _refresh_hand_panels(game, skip_user_id=skip_user_id)

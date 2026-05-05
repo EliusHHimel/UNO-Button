@@ -39,6 +39,7 @@ class UNOCog(commands.Cog):
         game = UNOGame(channel_id=channel_id, host_id=interaction.user.id)
         # Automatically add the host as the first player
         game.add_player(interaction.user.id, interaction.user.display_name)
+        game.games_dict = self.games
         self.games[channel_id] = game
 
         embed = build_game_embed(game)

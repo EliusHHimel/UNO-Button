@@ -44,6 +44,10 @@ class UNOGame:
         self.game_message: Optional[discord.Message] = None
         # Reference to the currently active main View (so we can stop it on game end)
         self.current_view: Optional[discord.ui.View] = None
+        # Maps user_id -> discord.Interaction for open ephemeral hand panels
+        self.hand_panels: dict = {}
+        # Reference to the cog's games dict (set externally) for End Game button
+        self.games_dict: Optional[dict] = None
 
     # ==================================================================
     # Lobby management
